@@ -1,72 +1,45 @@
 // pagina de mis inscripciones
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
-  getMyRegistrations,
-  cancelRegistration,
+  getMyRegistrations
 } from "../services/api";
 
 function MyRegistrations() {
   const [registrations, setRegistrations] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-
-  const [cancellingId, setCancellingId] = useState(null);
 
   // =========================================================
   // CARGAR INSCRIPCIONES
   // =========================================================
 
-  const loadRegistrations =  useCallback (async () => {
-    try {
-
-      const data = await getMyRegistrations();
-
-      setRegistrations(data);
-    } catch (error) {
-      setError(
-        error.message ||
-          "No fue posible cargar tus inscripciones."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    const loadRegistrations = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  const cargarInscripciones = async () => {
+        const data = await getMyRegistrations();
 
-    try {
+        setRegistrations(data);
 
-      const data = await getMyRegistrations();
+      } catch (error) {
+        setError(
+          error.message ||
+            "No fue posible cargar tus inscripciones."
+        );
 
-      setRegistrations(data);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setError("");
+    loadRegistrations();
 
-    } catch (error) {
-
-      setError(
-        error.message ||
-        "No fue posible cargar tus inscripciones."
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
-  cargarInscripciones();
-
-}, []);
+  }, []);
 
   // =========================================================
   // FORMATEAR FECHA
@@ -78,7 +51,9 @@ function MyRegistrations() {
     }
 
     const dateOnly = String(date).slice(0, 10);
-    const [year, month, day] = dateOnly.split("-");
+
+    const [year, month, day] =
+      dateOnly.split("-");
 
     if (!year || !month || !day) {
       return dateOnly;
@@ -88,54 +63,28 @@ function MyRegistrations() {
   };
 
   // =========================================================
-  // CANCELAR INSCRIPCIÓN
-  // =========================================================
-
-  const handleCancel = async (registrationId) => {
-    const confirmed = window.confirm(
-      "¿Deseas cancelar esta inscripción?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setCancellingId(registrationId);
-      setMessage("");
-
-      await cancelRegistration(registrationId);
-
-      setMessage(
-        "La inscripción fue cancelada correctamente."
-      );
-
-      await loadRegistrations();
-    } catch (error) {
-      setMessage(
-        error.message ||
-          "No fue posible cancelar la inscripción."
-      );
-    } finally {
-      setCancellingId(null);
-    }
-  };
-
-  // =========================================================
-  // ESTADOS
+  // ESTADO DE CARGA
   // =========================================================
 
   if (loading) {
     return (
       <main className="registrations-page">
+
         <div className="container">
+
           <div className="registration-status">
             Cargando tus inscripciones...
           </div>
+
         </div>
+
       </main>
     );
   }
+
+  // =========================================================
+  // VISTA PRINCIPAL
+  // =========================================================
 
   return (
     <main className="registrations-page">
@@ -155,14 +104,14 @@ function MyRegistrations() {
           </h1>
 
           <p>
-            Consulta los eventos en los que estás inscrito
-            y administra tu participación.
+            Consulta los eventos en los que estás
+            inscrito y revisa la información de
+            tu participación.
           </p>
 
         </div>
 
       </section>
-
 
       {/* CONTENIDO */}
 
@@ -170,20 +119,18 @@ function MyRegistrations() {
 
         <div className="container">
 
+          {/* ERROR */}
+
           {error && (
             <div className="registration-error">
               {error}
             </div>
           )}
 
-          {message && (
-            <div className="registration-message">
-              {message}
-            </div>
-          )}
+          {/* SIN INSCRIPCIONES */}
 
-
-          {!error && registrations.length === 0 && (
+          {!error &&
+            registrations.length === 0 && (
 
             <div className="registrations-empty">
 
@@ -207,19 +154,21 @@ function MyRegistrations() {
 
           )}
 
+          {/* LISTA DE INSCRIPCIONES */}
 
           {registrations.length > 0 && (
 
             <div className="registrations-grid">
 
-              {registrations.map((registration) => (
+              {registrations.map(
+                (registration) => (
 
                 <article
-                  key={registration.id}
+                  key={registration.inscripcion_id}
                   className="registration-card"
                 >
 
-                  {/* ENCABEZADO */}
+                  {/* ENCABEZADO TARJETA */}
 
                   <div className="registration-card-header">
 
@@ -228,11 +177,11 @@ function MyRegistrations() {
                     </span>
 
                     <span className="registration-state">
-                      {registration.estado || "Confirmada"}
+                      {registration.estado ||
+                        "Confirmada"}
                     </span>
 
                   </div>
-
 
                   {/* INFORMACIÓN */}
 
@@ -247,38 +196,107 @@ function MyRegistrations() {
                         "Sin descripción disponible."}
                     </p>
 
-
                     <div className="registration-details">
 
                       <p>
-                        <strong>Fecha:</strong>{" "}
-                        {formatDate(registration.fecha)}
+                        <strong>
+                          Fecha:
+                        </strong>{" "}
+                        {formatDate(
+                          registration.fecha
+                        )}
                       </p>
 
                       <p>
-                        <strong>Hora:</strong>{" "}
+                        <strong>
+                          Hora:
+                        </strong>{" "}
                         {registration.hora
-                          ? String(registration.hora).slice(0, 5)
+                          ? String(
+                              registration.hora
+                            ).slice(0, 5)
                           : "No definida"}
                       </p>
 
                       <p>
-                        <strong>Lugar:</strong>{" "}
+                        <strong>
+                          Lugar:
+                        </strong>{" "}
                         {registration.lugar ||
                           "Por confirmar"}
                       </p>
 
                       <p>
-                        <strong>Inscripción:</strong>{" "}
+                        <strong>
+                          Inscripción:
+                        </strong>{" "}
                         {formatDate(
                           registration.fecha_inscripcion
                         )}
                       </p>
 
+                      <p>
+                        <strong>
+                          Acompañantes:
+                        </strong>{" "}
+                        {registration.acompanantes || 0}
+                      </p>
+
+                      {/* DATOS DE LOS ACOMPAÑANTES */}
+
+                      {registration.lista_acompanantes &&
+                        registration.lista_acompanantes.length > 0 && (
+
+                        <div className="companions-list">
+
+                          <h3>
+                            Datos de los acompañantes
+                          </h3>
+
+                          {registration.lista_acompanantes.map(
+                            (companion, index) => (
+
+                            <div
+                              key={companion.id}
+                              className="companion-card"
+                            >
+
+                              <strong>
+                                Acompañante {index + 1}
+                              </strong>
+
+                              <p>
+                                <strong>Nombre:</strong>{" "}
+                                {companion.nombres}{" "}
+                                {companion.apellidos}
+                              </p>
+
+                              <p>
+                                <strong>Documento:</strong>{" "}
+                                {companion.numero_documento}
+                              </p>
+
+                              <p>
+                                <strong>Edad:</strong>{" "}
+                                {companion.edad}
+                              </p>
+
+                              <p>
+                                <strong>Parentesco:</strong>{" "}
+                                {companion.parentesco}
+                              </p>
+
+                            </div>
+
+                          ))}
+
+                        </div>
+
+                      )}
+
                     </div>
 
                   </div>
-
 
                   {/* ACCIONES */}
 
@@ -290,17 +308,6 @@ function MyRegistrations() {
                     >
                       Ver evento
                     </Link>
-
-                    <button
-                      type="button"
-                      className="btn-danger"
-                      onClick={() => handleCancel(registration.inscripcion_id)}
-                      disabled={cancellingId === registration.id}
-                    >
-                      {cancellingId === registration.id
-                        ? "Cancelando..."
-                        : "Cancelar"}
-                    </button>
 
                   </div>
 

@@ -1471,3 +1471,87 @@ select:focus-visible {
 .registration-card-footer .btn-danger:hover {
   background-color: #e98224;
 }
+
+/* =========================================
+   BOTÓN DE INSCRIPCIÓN - DETALLE DEL EVENTO
+========================================= */
+
+.registration-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+
+  background: #00bf6f;
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.registration-button:hover:not(:disabled) {
+  background: #009f5d;
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 16px rgba(0, 159, 93, 0.22);
+}
+
+.registration-button:disabled {
+  background: #b9c8c1;
+  color: #ffffff;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+/* =========================================
+   USUARIO YA INSCRITO
+========================================= */
+
+.already-registered-box {
+  margin-top: 18px;
+  padding: 16px;
+
+  background: #eefaf4;
+  border: 1px solid #bfe9d1;
+  border-radius: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.already-registered-box strong {
+  color: #08783f;
+  font-size: 14px;
+}
+
+.view-registration-button {
+  width: 100%;
+  padding: 12px 18px;
+
+  border: 1px solid #00bf6f;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #008d52;
+
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.view-registration-button:hover {
+  background: #00bf6f;
+  color: #ffffff;
+}

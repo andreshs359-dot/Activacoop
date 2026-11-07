@@ -1,6 +1,7 @@
 // pagina de inicio de sesion
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { loginUser } from "../services/api";
 
@@ -9,7 +10,7 @@ function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: "",
+    numeroDocumento: "",
     password: "",
   });
 
@@ -47,7 +48,7 @@ function Login() {
     try {
 
       const data = await loginUser(
-        formData.email,
+        formData.numeroDocumento,
         formData.password
       );
 
@@ -61,6 +62,12 @@ function Login() {
       localStorage.setItem(
         "user",
         JSON.stringify(data.user)
+      );
+
+      // Guardar si es primer ingreso
+      localStorage.setItem(
+        "primerIngreso",
+        String(data.primerIngreso)
       );
 
       // Ir al inicio
@@ -93,7 +100,7 @@ function Login() {
         </h1>
 
         <p>
-          Ingresa a tu cuenta de Activacoop
+          Ingresa al módulo de eventos de Activacoop
         </p>
 
 
@@ -106,16 +113,17 @@ function Login() {
 
         <form onSubmit={handleSubmit}>
 
-          {/* CORREO */}
+          {/* NÚMERO DE DOCUMENTO */}
 
           <label>
-            Correo electrónico
+            Número de documento
 
             <input
-              type="email"
-              name="email"
-              placeholder="correo@ejemplo.com"
-              value={formData.email}
+              type="text"
+              inputMode="numeric"
+              name="numeroDocumento"
+              placeholder="Ingresa tu número de documento"
+              value={formData.numeroDocumento}
               onChange={handleChange}
               required
             />
@@ -156,15 +164,12 @@ function Login() {
         </form>
 
 
-        {/* REGISTRO */}
-
         <div className="form-footer">
 
-          ¿No tienes una cuenta?{" "}
-
-          <Link to="/registro">
-            Crear cuenta
-          </Link>
+          <p>
+            Si es tu primer ingreso, utiliza como contraseña
+            inicial los últimos 4 dígitos de tu documento.
+          </p>
 
         </div>
 

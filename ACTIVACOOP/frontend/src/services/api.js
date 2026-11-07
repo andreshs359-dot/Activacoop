@@ -276,49 +276,36 @@ return data;
 };
 
 export const loginUser =
-async (email, password) => {
+async (numeroDocumento, password) => {
 
+  const response =
+    await fetch(
+      `${API_URL}/auth/login`,
+      {
+        method: "POST",
 
-const response =
-  await fetch(
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-    `${API_URL}/auth/login`,
+        body: JSON.stringify({
+          numeroDocumento,
+          password
+        })
+      }
+    );
 
-    {
+  const data =
+    await response.json();
 
-      method:
-        "POST",
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+      "Error al iniciar sesión"
+    );
+  }
 
-      headers: {
-
-        "Content-Type": "application/json"
-
-      },
-
-      body:
-        JSON.stringify(
-          {email, password}
-        )
-
-    }
-
-  );
-
-
-const data = await response.json();
-
-
-if (
-  !response.ok
-) {
-
-  throw new Error(
-    data.message ||
-    "Error al iniciar sesión"
-  );
-
-}
-return data;
+  return data;
 };
 
 
@@ -370,38 +357,34 @@ return data;
 
 // Crear inscripción
 
-export const createRegistration = async (evento_id) => {
- const token = localStorage.getItem("token");
+export const createRegistration = async (registrationData) => {
+  const token = localStorage.getItem("token");
 
-
- const response = await fetch(
+  const response = await fetch(
     `${API_URL}/inscripciones`,
-      {
-        method: "POST",
+    {
+      method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
 
-      body: JSON.stringify({
-          evento_id
-        })
-      }
-    );
-
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Error al realizar la inscripción"
-      );
+      body: JSON.stringify(registrationData),
     }
+  );
 
-    return data;
-  };
+  const data = await response.json();
 
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        "Error al realizar la inscripción"
+    );
+  }
+
+  return data;
+};
 
 /**
  * Obtener mis inscripciones
@@ -431,48 +414,36 @@ export const getMyRegistrations = async () => {
   return data;
 };
 
-// Cancelar inscripción
+// ==========================================
+// ELIMINAR INSCRIPCIÓN - ADMINISTRADOR
+// ==========================================
 
-export const cancelRegistration =
-async (
-id
-) => {
+export const deleteRegistration =
+async (id) => {
 
+  const response =
+    await fetch(
+      `${API_URL}/inscripciones/${id}`,
+      {
+        method: "DELETE",
 
-const token =
-  localStorage.getItem(
-    "token"
-  );
-
-
-const response =
-  await fetch(
-
-    `${API_URL}/inscripciones/${id}`,
-    {
-
-      method:
-        "DELETE",
-
-      headers: {
-
-        Authorization:
-          `Bearer ${token}`
+        headers:
+          getAuthHeaders()
       }
-    }
-  );
+    );
 
+  const data =
+    await response.json();
 
-const data = await response.json();
+  if (!response.ok) {
 
-if (!response.ok) {
-  throw new Error(
-    data.message ||
-    "Error al cancelar la inscripción"
-  );
-}
+    throw new Error(
+      data.message ||
+      "Error al eliminar la inscripción"
+    );
+  }
 
-return data;
+  return data;
 };
 
 
@@ -725,3 +696,294 @@ export const getStatistics = async () => {
   return data;
 };
 
+// ==========================================
+// CONFIGURACIÓN DE COBROS
+// ==========================================
+
+
+// Obtener configuración de cobro de un evento
+export const getBillingConfig =
+async (eventoId) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/configuracion`,
+      {
+        headers:
+          getAuthHeaders()
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al consultar la configuración de cobro"
+    );
+  }
+
+
+  return data;
+};
+
+
+// Guardar o actualizar configuración de cobro
+export const saveBillingConfig =
+async (
+  eventoId,
+  configData
+) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/configuracion`,
+      {
+        method:
+          "PUT",
+
+        headers:
+          getAuthHeaders(),
+
+        body:
+          JSON.stringify(
+            configData
+          )
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al guardar la configuración de cobro"
+    );
+  }
+
+
+  return data;
+};
+
+
+// ==========================================
+// CUOTAS DEL EVENTO
+// ==========================================
+
+
+// Consultar cuotas del evento
+export const getEventInstallments =
+async (eventoId) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/cuotas`,
+      {
+        headers:
+          getAuthHeaders()
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al consultar las cuotas del evento"
+    );
+  }
+
+
+  return data;
+};
+
+
+// Guardar cuotas del evento
+export const saveEventInstallments =
+async (
+  eventoId,
+  cuotas
+) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/cuotas`,
+      {
+        method:
+          "PUT",
+
+        headers:
+          getAuthHeaders(),
+
+        body:
+          JSON.stringify({
+            cuotas
+          })
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al guardar las cuotas del evento"
+    );
+  }
+
+
+  return data;
+};
+// ==========================================
+// BENEFICIOS DE ASOCIADOS
+// ==========================================
+
+
+// Buscar asociados
+export const searchAssociates =
+async (searchText) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/asociados/buscar?q=${encodeURIComponent(
+        searchText
+      )}`,
+      {
+        headers:
+          getAuthHeaders()
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al buscar asociados"
+    );
+  }
+
+
+  return data;
+};
+
+
+// Consultar beneficio del asociado
+export const getAssociateBenefit =
+async (
+  eventoId,
+  usuarioId
+) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/asociado/${usuarioId}/beneficio`,
+      {
+        headers:
+          getAuthHeaders()
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al consultar el beneficio del asociado"
+    );
+  }
+
+
+  return data;
+};
+// ==========================================
+// CONSULTAR MI BENEFICIO PARA UN EVENTO
+// ==========================================
+
+export const getMyEventBenefit = async (eventoId) => {
+
+  const response = await fetch(
+    `${API_URL}/cobros/evento/${eventoId}/mi-beneficio`,
+    {
+      method: "GET",
+      headers: getAuthHeaders()
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+      "Error al consultar mi beneficio para el evento"
+    );
+  }
+
+  return data;
+};
+
+// Guardar o actualizar beneficio
+export const saveAssociateBenefit =
+async (
+  eventoId,
+  usuarioId,
+  benefitData
+) => {
+
+  const response =
+    await fetch(
+      `${API_URL}/cobros/evento/${eventoId}/asociado/${usuarioId}/beneficio`,
+      {
+        method:
+          "PUT",
+
+        headers:
+          getAuthHeaders(),
+
+        body:
+          JSON.stringify(
+            benefitData
+          )
+      }
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.message ||
+      "Error al guardar el beneficio del asociado"
+    );
+  }
+
+
+  return data;
+};

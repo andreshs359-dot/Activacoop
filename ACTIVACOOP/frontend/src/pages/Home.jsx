@@ -40,12 +40,7 @@ function Home() {
                 Ver eventos
               </Link>
 
-              <Link
-                to="/registro"
-                className="btn-secondary"
-              >
-                Crear cuenta
-              </Link>
+             
 
             </div>
 

@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-  function ProtectedRoute({ adminOnly = false }) {
+function ProtectedRoute({ adminOnly = false }) {
   const token = localStorage.getItem("token");
   const userData = localStorage.getItem("user");
 
@@ -21,12 +21,20 @@ import { Navigate, Outlet } from "react-router-dom";
     return <Navigate to="/login" replace />;
   }
 
+  // Verificar que existan datos del usuario
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   // Verificar si el usuario tiene permisos de administrador
-  if (adminOnly && user?.rol !== "administrador") {
+  if (
+    adminOnly &&
+    Number(user.rol) !== 2
+  ) {
     return <Navigate to="/" replace />;
   }
 
-  // Permitir el acceso a la ruta
+  // Permitir acceso a la ruta
   return <Outlet />;
 }
 

@@ -1,4 +1,5 @@
-//barra de navegacion 
+// barra de navegacion
+
 import {
   Link,
   NavLink,
@@ -21,12 +22,16 @@ function Navbar() {
       user = JSON.parse(userString);
     }
   } catch (error) {
-    console.error("Error al leer usuario:", error);
+    console.error(
+      "Error al leer usuario:",
+      error
+    );
   }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("primerIngreso");
 
     navigate("/login");
   };
@@ -37,7 +42,10 @@ function Navbar() {
 
         {/* LOGOTIPO */}
 
-        <Link to="/" className="navbar-logo">
+        <Link
+          to="/"
+          className="navbar-logo"
+        >
           ACTIVACOOP
         </Link>
 
@@ -69,14 +77,15 @@ function Navbar() {
             </NavLink>
           )}
 
-          {user?.rol === "administrador" && (
-            <NavLink
-              to="/administrador"
-              className={getNavLinkClass}
-            >
-              Administración
-            </NavLink>
-          )}
+          {token &&
+            Number(user?.rol) === 2 && (
+              <NavLink
+                to="/administrador"
+                className={getNavLinkClass}
+              >
+                Administración
+              </NavLink>
+            )}
 
         </div>
 

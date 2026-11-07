@@ -1,10 +1,11 @@
 // pagina de detalle del evento
 
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { getEventById, createRegistration,
+import {
+  getEventById,
+  getMyRegistrations
 } from "../services/api";
 
 function EventDetail() {
@@ -12,11 +13,11 @@ function EventDetail() {
   const navigate = useNavigate();
 
   const [event, setEvent] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [registering, setRegistering] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] =
+    useState(false);
 
   // =========================================================
   // CARGAR EVENTO
@@ -28,9 +29,30 @@ function EventDetail() {
         setLoading(true);
         setError("");
 
+        // Cargar información del evento
         const data = await getEventById(id);
 
         setEvent(data);
+
+        // Revisar si el usuario ya está inscrito
+        const token = localStorage.getItem("token");
+
+        if (token) {
+          const registrations =
+            await getMyRegistrations();
+
+          const registered =
+            registrations.some(
+              (registration) =>
+                Number(registration.evento_id) ===
+                Number(id)
+            );
+
+          setAlreadyRegistered(registered);
+        } else {
+          setAlreadyRegistered(false);
+        }
+
       } catch (error) {
         setError(
           error.message ||
@@ -64,60 +86,53 @@ function EventDetail() {
   };
 
   // =========================================================
-  // INSCRIPCIÓN
+  // IR AL FORMULARIO DE INSCRIPCIÓN
   // =========================================================
 
-  const handleRegistration = async () => {
-  const token = localStorage.getItem("token");
+  const handleRegistration = () => {
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    setMessage(
-      "Debes iniciar sesión para inscribirte"
+    if (!token) {
+      setMessage(
+        "Debes iniciar sesión para inscribirte"
+      );
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+
+      return;
+    }
+
+    if (alreadyRegistered) {
+      setMessage(
+        "Ya estás inscrito en este evento"
+      );
+
+      return;
+    }
+
+    const isUnlimited =
+      Number(event.cupo_ilimitado) === 1;
+
+    const availableSlots =
+      Number(event.cupos_disponibles || 0);
+
+    if (
+      !isUnlimited &&
+      availableSlots <= 0
+    ) {
+      setMessage(
+        "No hay cupos disponibles"
+      );
+
+      return;
+    }
+
+    navigate(
+      `/eventos/${event.id}/inscripcion`
     );
-
-    setTimeout(() =>{
-      navigate("/login");
-    },1500);
-
-    return;
-  }
-
-  if (!event || event.cupos_disponibles <= 0) {
-    setMessage("No hay cupos disponibles");
-
-    return;
-  }
-
-  if (registering) {
-    return;
-  }
-
-  try {
-    setRegistering(true);
-    setMessage("");
-
-    await createRegistration(event.id);
-
-    setEvent((previousEvent) => ({
-      ...previousEvent,
-      cupos_disponibles:
-        previousEvent.cupos_disponibles - 1
-    }));
-
-    setMessage(
-      "Inscripción realizada correctamente"
-    );
-
-  } catch (error) {
-    setMessage(
-      error.message ||
-        "No fue posible realizar la inscripción"
-    );
-
-  } finally {
-    setRegistering(false);
-  }
-};
+  };
 
   // =========================================================
   // ESTADO DE CARGA
@@ -142,9 +157,14 @@ function EventDetail() {
   if (error || !event) {
     return (
       <main className="event-detail-page">
+
         <div className="container">
+
           <div className="event-detail-error">
-            <h2>No se pudo cargar el evento</h2>
+
+            <h2>
+              No se pudo cargar el evento
+            </h2>
 
             <p>
               {error || "El evento no existe."}
@@ -156,16 +176,29 @@ function EventDetail() {
             >
               Volver a eventos
             </Link>
+
           </div>
+
         </div>
+
       </main>
     );
   }
 
-  const availableSlots =
-    Number(event.cupos_disponibles || 0);
+  // =========================================================
+  // DISPONIBILIDAD
+  // =========================================================
 
-  const hasAvailableSlots = availableSlots > 0;
+  const availableSlots =
+    Number(
+      event.cupos_disponibles || 0
+    );
+
+  const isUnlimited =
+    Number(event.cupo_ilimitado) === 1;
+
+  const hasAvailableSlots =
+    isUnlimited || availableSlots > 0;
 
   // =========================================================
   // VISTA PRINCIPAL
@@ -188,7 +221,8 @@ function EventDetail() {
           </Link>
 
           <span className="event-detail-category">
-            {event.categoria_nombre || "Actividad"}
+            {event.categoria_nombre ||
+              "Actividad"}
           </span>
 
           <h1>
@@ -196,14 +230,13 @@ function EventDetail() {
           </h1>
 
           <p>
-            Conoce todos los detalles de esta actividad
-            de Activacoop.
+            Conoce todos los detalles de esta
+            actividad de Activacoop.
           </p>
 
         </div>
 
       </section>
-
 
       {/* CONTENIDO */}
 
@@ -232,8 +265,9 @@ function EventDetail() {
 
             </div>
 
-
             <div className="event-detail-information">
+
+              {/* FECHA */}
 
               <div className="detail-information-item">
 
@@ -242,15 +276,20 @@ function EventDetail() {
                 </span>
 
                 <div>
-                  <strong>Fecha</strong>
+
+                  <strong>
+                    Fecha
+                  </strong>
 
                   <p>
                     {formatDate(event.fecha)}
                   </p>
+
                 </div>
 
               </div>
 
+              {/* HORA */}
 
               <div className="detail-information-item">
 
@@ -259,17 +298,25 @@ function EventDetail() {
                 </span>
 
                 <div>
-                  <strong>Hora</strong>
+
+                  <strong>
+                    Hora
+                  </strong>
 
                   <p>
                     {event.hora
-                      ? String(event.hora).slice(0, 5)
+                      ? String(event.hora).slice(
+                          0,
+                          5
+                        )
                       : "No definida"}
                   </p>
+
                 </div>
 
               </div>
 
+              {/* LUGAR */}
 
               <div className="detail-information-item">
 
@@ -278,11 +325,16 @@ function EventDetail() {
                 </span>
 
                 <div>
-                  <strong>Lugar</strong>
+
+                  <strong>
+                    Lugar
+                  </strong>
 
                   <p>
-                    {event.lugar || "Por confirmar"}
+                    {event.lugar ||
+                      "Por confirmar"}
                   </p>
+
                 </div>
 
               </div>
@@ -290,7 +342,6 @@ function EventDetail() {
             </div>
 
           </article>
-
 
           {/* TARJETA DE INSCRIPCIÓN */}
 
@@ -302,16 +353,23 @@ function EventDetail() {
 
             <div className="registration-slots">
 
-              <strong>
-                {availableSlots}
-              </strong>
+              {isUnlimited ? (
+                <strong>
+                  Ilimitados
+                </strong>
+              ) : (
+                <>
+                  <strong>
+                    {availableSlots}
+                  </strong>
 
-              <span>
-                cupos disponibles
-              </span>
+                  <span>
+                    cupos disponibles
+                  </span>
+                </>
+              )}
 
             </div>
-
 
             <div
               className={
@@ -321,45 +379,58 @@ function EventDetail() {
               }
             >
 
-              {hasAvailableSlots
-                ? "✓ Hay cupos disponibles"
-                : "✕ No hay cupos disponibles"}
+              {isUnlimited
+                ? "✓ Inscripciones disponibles"
+                : hasAvailableSlots
+                  ? "✓ Hay cupos disponibles"
+                  : "✕ No hay cupos disponibles"}
 
             </div>
 
+            {/* MENSAJE */}
 
             {message && (
-              <div
-                className={`event-message ${
-                  message.toLowerCase().includes("correctamente")
-                    ? "success"
-                    : "error"
-              }`}
-            >
-              {message}
-            </div>
-          )}
+              <div className="event-message error">
+                {message}
+              </div>
+            )}
 
+            {/* ESTADO DE INSCRIPCIÓN */}
 
-            <button
-              onClick={handleRegistration}
-              disabled={
-                registering ||
-                event.cupos_disponibles <= 0
-              }
-            >
-              {registering
-                ? "Procesando..."
-                : event.cupos_disponibles <= 0
-                  ? "Sin cupos"
-                  : "Inscribirme"}
-            </button>
+            {alreadyRegistered ? (
 
+              <div className="already-registered-box">
 
-            <p className="registration-note">
-              Debes iniciar sesión para realizar
-              una inscripción.
-            </p>
+                <strong>
+                  ✓ Ya estás inscrito en este evento
+                </strong>
+
+                <button
+                  type="button"
+                  className="view-registration-button"
+                  onClick={() =>
+                    navigate("/mis-inscripciones")
+                  }
+                >
+                  Ver mis inscripciones
+                </button>
+
+              </div>
+
+            ) : (
+
+              <button
+                type="button"
+                className="registration-button"
+                onClick={handleRegistration}
+                disabled={!hasAvailableSlots}
+              >
+                {hasAvailableSlots
+                  ? "Inscribirme al evento"
+                  : "Sin cupos disponibles"}
+              </button>
+
+            )}
 
           </aside>
 

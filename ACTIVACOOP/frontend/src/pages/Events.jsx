@@ -330,10 +330,13 @@ function Events() {
               {paginatedEvents.map((event) => {
 
                 const availableSlots =
-                  Number(event.cupos_disponibles || 0);
+  Number(event.cupos_disponibles || 0);
 
-                const hasAvailableSlots =
-                  availableSlots > 0;
+const isUnlimited =
+  Number(event.cupo_ilimitado) === 1;
+
+const hasAvailableSlots =
+  isUnlimited || availableSlots > 0;
 
                 return (
 
@@ -408,10 +411,10 @@ function Events() {
                         </p>
 
                         <p>
-                          <span>👥</span>
-                          <strong>Cupos:</strong>{" "}
-                          {availableSlots}
-                        </p>
+  <span>👥</span>
+  <strong>Cupos:</strong>{" "}
+  {isUnlimited ? "Ilimitados" : availableSlots}
+</p>
 
                       </div>
 
