@@ -7,41 +7,19 @@ const router = express.Router();
 
 // REGISTRO
 
-router.post(
-"/registro",
-register
-);
+router.post("/registro",register);
 
 // LOGIN
 
-router.post(
-"/login",
-login
-);
-
+router.post("/login",login);
 
 // PERFIL PROTEGIDO
-
-router.get(
-  "/perfil",
+router.get("/perfil",
 
   authenticateToken,
 
-  (
-    req,
-    res
-  ) => {
-
-    res.json({
-
-      message:
-        "Ruta protegida",
-
-      user:
-        req.user
-
-    });
-
+  (req, res) => {
+    res.json({ message: "Ruta protegida",user: req.user });
   }
 );
 

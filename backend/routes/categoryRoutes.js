@@ -10,10 +10,9 @@ deleteCategory
 "../controllers/categoryController"
 );
 
-const authenticateToken =
-require(
-"../middleware/authMiddleware"
-);
+//la ruta de autenticación y autorización se importa desde el middleware
+
+const authenticateToken = require("../middleware/authMiddleware" );
 
 const isAdmin =
 require(
